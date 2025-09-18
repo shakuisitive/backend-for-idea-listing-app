@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
+import ideaRouter from "./routes/ideaRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -11,20 +13,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/ideas", (req, res) => {
-  const ideas = [
-    { id: 1, title: "idea 1", description: "this is idea 1" },
-    { id: 1, title: "idea 2", description: "this is idea 2" },
-    { id: 1, title: "idea 3", description: "this is idea 3" },
-  ];
-
-  res.status(201).json(ideas);
-});
-
-app.post("/api/ideas", (req, res) => {
-  const { title, description } = req.body;
-
-  res.send({ title, description });
-});
+app.use("/api/ideas", ideaRouter);
 
 app.listen(PORT, () => console.log(`Listening to port ${PORT}`));
