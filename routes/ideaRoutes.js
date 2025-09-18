@@ -14,7 +14,6 @@ router
   })
   .post((req, res) => {
     const { title, description } = req.body;
-
     res.send({ title, description });
   });
 
