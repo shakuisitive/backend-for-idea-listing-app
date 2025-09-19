@@ -16,8 +16,10 @@ const ideaSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    tags: [String],
-    default: [],
+    tags: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
