@@ -45,24 +45,82 @@ router
     }
   });
 
-router.route("/:id").get(async (req, res, next) => {
-  try {
-    const { id } = req.params;
+router
+  .route("/:id")
+  .get(async (req, res, next) => {
+    try {
+      const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(404);
-      throw new Error("Invalid Id");
-    }
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(404);
+        throw new Error("Invalid Id");
+      }
 
-    const idea = await Idea.findById(id);
-    if (!idea) {
-      res.status(404);
-      throw new Error("Idea Not Found");
+      const idea = await Idea.findById(id);
+
+      if (!idea) {
+        res.status(404);
+        throw new Error("Idea Not Found");
+      }
+      res.json(idea);
+    } catch (err) {
+      next(err);
     }
-    res.json(idea);
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+  .delete(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(400);
+        throw new Error("Invalid Id");
+      }
+
+      const deletedIdea = await Idea.findByIdAndDelete(id);
+
+      res.status(204);
+      res.json({
+        message: "Idea deleted successfully.",
+        deletedIdea,
+      });
+    } catch (err) {
+      next(err);
+    }
+  })
+  .patch(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error("Invalid Id");
+      }
+
+      const editableFields = ["title", "description", "summary", "tags"];
+      const alteredReqBody = structuredClone(req.body);
+      const keys = Object.keys(alteredReqBody);
+
+      keys.forEach(
+        (key) => !editableFields.includes(key) && delete alteredReqBody[key]
+      );
+
+      if (keys.includes("tags")) {
+        alteredReqBody.tags = Array.isArray(alteredReqBody.tags)
+          ? alteredReqBody.tags
+          : alteredReqBody.tags
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean);
+      }
+
+      const updatedIdea = await Idea.findByIdAndUpdate(id, alteredReqBody, {
+        new: true,
+        runValidators: true,
+      });
+
+      res.status(200).json(updatedIdea);
+    } catch (err) {
+      next(err);
+    }
+  });
 
 export default router;
