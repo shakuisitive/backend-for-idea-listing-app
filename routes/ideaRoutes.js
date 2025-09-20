@@ -41,6 +41,7 @@ router
             : Array.isArray(tags)
             ? tags
             : [],
+        user: req.user.id,
       });
 
       const savedIdea = await newIdea.save();
@@ -59,7 +60,7 @@ router
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(404);
-        throw new Error("Invalid Id");
+        throw new Error("Idea not found");
       }
 
       const idea = await Idea.findById(id);
@@ -79,10 +80,23 @@ router
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(400);
-        throw new Error("Invalid Id");
+        throw new Error("Idea not found");
       }
 
-      const deletedIdea = await Idea.findByIdAndDelete(id);
+      const idea = await Idea.findById(id);
+
+      if (!idea) {
+        res.status(404);
+        throw new Error("Idea not found");
+      }
+
+      // Check if user owns this idea
+      if (idea.user.toString() !== req.user.id) {
+        res.status(403);
+        throw new Error("You are not authorized to delete this idea");
+      }
+
+      await idea.deleteOne();
 
       res.status(204);
       res.json({
@@ -98,7 +112,7 @@ router
       const { id } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new Error("Invalid Id");
+        throw new Error("Idea not found");
       }
 
       const editableFields = ["title", "description", "summary", "tags"];
