@@ -115,6 +115,18 @@ router
         throw new Error("Idea not found");
       }
 
+      const idea = await Idea.findById(id);
+
+      if (!idea) {
+        res.status(404);
+        throw new Error("Idea not found");
+      }
+
+      if (idea.user.toString() !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error("Unauthorized to perform this update");
+      }
+
       const editableFields = ["title", "description", "summary", "tags"];
       const alteredReqBody = structuredClone(req.body || {});
       const keys = Object.keys(alteredReqBody);
@@ -132,10 +144,14 @@ router
               .filter(Boolean);
       }
 
-      const updatedIdea = await Idea.findByIdAndUpdate(id, alteredReqBody, {
-        new: true,
-        runValidators: true,
-      });
+      const { title, description, summary, tags } = alteredReqBody;
+
+      idea.title = title ?? idea.title;
+      idea.description = description ?? idea.description;
+      idea.summary = summary ?? idea.summary;
+      idea.tags = tags ?? idea.tags;
+
+      const updatedIdea = await idea.save();
 
       res.status(200).json(updatedIdea);
     } catch (err) {
