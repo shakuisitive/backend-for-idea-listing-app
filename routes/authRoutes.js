@@ -49,4 +49,19 @@ router.route("/register").post(async (req, res, next) => {
   }
 });
 
+router.route("/logout").post(async (req, res, next) => {
+  try {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: process.env.NODE_ENV === "production",
+    });
+    res.json({
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;
