@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { protect } from "../middleware/authMiddleware.js";
 import Idea from "../models/Idea.js";
 const router = express.Router();
 
@@ -18,9 +19,9 @@ router
       next(err);
     }
   })
-  .post(async (req, res, next) => {
+  .post(protect, async (req, res, next) => {
     try {
-      const { title, description, summary, tags } = req.body;
+      const { title, description, summary, tags } = req.body || {};
 
       if (!title?.trim() || !description?.trim() || !summary?.trim()) {
         res.status(400);
@@ -72,7 +73,7 @@ router
       next(err);
     }
   })
-  .delete(async (req, res, next) => {
+  .delete(protect, async (req, res, next) => {
     try {
       const { id } = req.params;
 
@@ -92,7 +93,7 @@ router
       next(err);
     }
   })
-  .patch(async (req, res, next) => {
+  .patch(protect, async (req, res, next) => {
     try {
       const { id } = req.params;
 
@@ -101,7 +102,7 @@ router
       }
 
       const editableFields = ["title", "description", "summary", "tags"];
-      const alteredReqBody = structuredClone(req.body);
+      const alteredReqBody = structuredClone(req.body || {});
       const keys = Object.keys(alteredReqBody);
 
       keys.forEach(

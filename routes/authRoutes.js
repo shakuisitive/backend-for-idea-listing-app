@@ -1,5 +1,6 @@
 import express from "express";
-import bcrypt from "bcryptjs";
+import { jwtVerify } from "jose";
+import { JWT_SECRET } from "../utils/getJwtSecret.js";
 import User from "../models/User.js";
 import { generateToken } from "../utils/generateToken.js";
 
@@ -7,7 +8,7 @@ const router = express.Router();
 
 router.route("/register").post(async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.body || {};
 
     if (!name || !email || !password) {
       res.status(400);
@@ -51,7 +52,7 @@ router.route("/register").post(async (req, res, next) => {
 
 router.route("/login").post(async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       res.status(400);
@@ -109,6 +110,37 @@ router.route("/logout").post(async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+router.route("/refresh").post(async (req, res, next) => {
+  const token = req.cookies?.refreshToken;
+
+  if (!token) {
+    res.status(401);
+    throw new Error("No refresh token");
+  }
+
+  const { payload } = await jwtVerify(token, JWT_SECRET);
+
+  const user = await User.findById(payload.userId);
+
+  if (!user) {
+    res.status(401);
+    throw new Error("No user");
+  }
+
+  const newAccessToken = await generateToken(
+    { userId: user._id.toString() },
+    "1m"
+  );
+
+  res.json({
+    user: { id: user._id, name: user.name, email: user.email },
+    accessToken: newAccessToken,
+  });
+
+  try {
+  } catch (err) {}
 });
 
 export default router;
