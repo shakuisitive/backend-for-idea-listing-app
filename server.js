@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 8000;
 connectDB();
 
 // CORS Config
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = [process.env.FRONTEND_DOMAIN];
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
