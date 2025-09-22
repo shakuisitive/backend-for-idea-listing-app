@@ -33,7 +33,7 @@ router.route("/register").post(async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
@@ -80,7 +80,7 @@ router.route("/login").post(async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
@@ -101,7 +101,7 @@ router.route("/logout").post(async (req, res, next) => {
   try {
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
     });
     res.json({
